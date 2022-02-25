@@ -1,5 +1,5 @@
 import os
-from brownie import Contract, accounts
+from brownie import Contract, accounts, web3
 
 
 def main():
@@ -17,13 +17,17 @@ def main():
         dai_before = dai.balanceOf(herbs)
         usdc_before = usdc.balanceOf(herbs)
 
-        herbs.collect({"from": dev, "gas_limit": "7000000"})
-        dai_after = dai.balanceOf(herbs)
-        usdc_after = usdc.balanceOf(herbs)
+        gas_price = web3.eth.gas_price
+        if gas_price / 1e9 < 1500:
+            herbs.collect({"from": dev, "gas_limit": "7500000"})
+            dai_after = dai.balanceOf(herbs)
+            usdc_after = usdc.balanceOf(herbs)
 
-        if dai_after > dai_before:
-            print(f'DAI gain: {(dai_after - dai_before) / 1e18}')
-        if usdc_after > usdc_before:
-            print(f'USDC gain: {(usdc_after - usdc_before) / 1e6}')
+            if dai_after > dai_before:
+                print(f'DAI gain: {(dai_after - dai_before) / 1e18}')
+            if usdc_after > usdc_before:
+                print(f'USDC gain: {(usdc_after - usdc_before) / 1e6}')
+        else:
+            print(f'{gas_price / 1e9} gwei too high')
     else:
         print("no herbs to collect")
